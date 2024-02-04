@@ -1,3 +1,0 @@
-Lance;10
-Épée longue;20
-Épée courte;70

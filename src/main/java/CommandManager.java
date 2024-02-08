@@ -1,4 +1,5 @@
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -11,6 +12,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +94,18 @@ public class CommandManager extends ListenerAdapter {
                     event.reply("Vous avez obtenu :").queue();
                     event.getChannel().sendMessageEmbeds(embed.build()).queue();
                 }
+            }
+            else{
+                event.reply(event.getUser().getAsMention()+": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+            }
+        }
+        else if(command.equals("off")){
+            if (authorized_user.contains(event.getUser().getName())){
+                event.reply("Merci d'avoir visité ma Taverne. A bientôt soldat !").queue();
+
+                this.shardManager.setStatus(OnlineStatus.OFFLINE);
+
+                System.exit(0);
             }
             else{
                 event.reply(event.getUser().getAsMention()+": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();

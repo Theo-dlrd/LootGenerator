@@ -15,10 +15,8 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
 
 public class CommandManager extends ListenerAdapter {
     static private ArrayList<String> lootable_user = new ArrayList<String>();
@@ -55,76 +53,105 @@ public class CommandManager extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String command = event.getName();
-        if(command.equals("loot")){
-            if(lootable_user.contains(event.getUser().getName())) {
-                EmbedBuilder embed = new EmbedBuilder();
+        switch (command) {
+            case "loot" -> {
+                if (lootable_user.contains(event.getUser().getName())) {
+                    EmbedBuilder embed = new EmbedBuilder();
 
-                Random rand = new Random();
-                int randomArme = rand.nextInt(100) + 1;
-                System.out.print(randomArme);
-                String arme = null;
-                for (String string : armes.keySet()) {
-                    if (randomArme >= armes.get(string).get(0) && randomArme <= armes.get(string).get(1)) {
-                        System.out.println(" --> ["+armes.get(string).get(0)+", "+armes.get(string).get(1)+"]");
-                        arme = string;
-                        embed.setTitle(arme);
-                    }
-                }
-
-                String gradeArme = null;
-                if(arme!=null) {
-                    int randomGrade = rand.nextInt(100) + 1;
-                    System.out.print(randomGrade);
-                    for (String string : grade.keySet()) {
-                        if (randomGrade >= grade.get(string).get(0) && randomGrade <= grade.get(string).get(1)) {
-                            System.out.println(" --> ["+grade.get(string).get(0)+", "+grade.get(string).get(1)+"]");
-                            gradeArme = string;
-                            embed.addField("Rareté :", gradeArme, true);
-                            embed.setColor(new Color(grade.get(gradeArme).get(2), grade.get(gradeArme).get(3), grade.get(gradeArme).get(4)));
+                    Random rand = new Random();
+                    int randomArme = rand.nextInt(100) + 1;
+                    System.out.print(randomArme);
+                    String arme = null;
+                    for (String string : armes.keySet()) {
+                        if (randomArme >= armes.get(string).get(0) && randomArme <= armes.get(string).get(1)) {
+                            System.out.println(" --> [" + armes.get(string).get(0) + ", " + armes.get(string).get(1) + "]");
+                            arme = string;
+                            embed.setTitle(arme);
                         }
                     }
-                }
 
-                String magieArme = null;
-                if (arme!=null && gradeArme != null && !gradeArme.equals("Médiocre") && !gradeArme.equals("Commun")) {
-                    int randomMagie = rand.nextInt(100) + 1;
-                    System.out.print(randomMagie);
-                    for (String string : magie.keySet()) {
-                        if (randomMagie >= magie.get(string).get(0) && randomMagie <= magie.get(string).get(1)) {
-                            System.out.println(" --> ["+magie.get(string).get(0)+", "+magie.get(string).get(1)+"]");
-                            magieArme = string;
-                            embed.addField("Magie :", magieArme, true);
+                    String gradeArme = null;
+                    if (arme != null) {
+                        int randomGrade = rand.nextInt(100) + 1;
+                        System.out.print(randomGrade);
+                        for (String string : grade.keySet()) {
+                            if (randomGrade >= grade.get(string).get(0) && randomGrade <= grade.get(string).get(1)) {
+                                System.out.println(" --> [" + grade.get(string).get(0) + ", " + grade.get(string).get(1) + "]");
+                                gradeArme = string;
+                                embed.addField("Rareté :", gradeArme, true);
+                                embed.setColor(new Color(grade.get(gradeArme).get(2), grade.get(gradeArme).get(3), grade.get(gradeArme).get(4)));
+                            }
                         }
                     }
-                }
 
-                if(embed.isEmpty()) {
-                    event.reply("Vous n'avez rien reçu !").queue();
-                }
-                else{
-                    event.reply("Vous avez obtenu :").queue();
-                    event.getChannel().sendMessageEmbeds(embed.build()).queue();
-                }
-            }
-            else{
-                event.reply(event.getUser().getAsMention()+": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
-            }
-        }
-        else if(command.equals("off")){
-            if (admin_user.contains(event.getUser().getName())){
-                event.reply("Merci d'avoir visité ma Taverne. A bientôt soldat !").queue();
+                    String magieArme = null;
+                    if (arme != null && gradeArme != null && !gradeArme.equals("Médiocre") && !gradeArme.equals("Commun")) {
+                        int randomMagie = rand.nextInt(100) + 1;
+                        System.out.print(randomMagie);
+                        for (String string : magie.keySet()) {
+                            if (randomMagie >= magie.get(string).get(0) && randomMagie <= magie.get(string).get(1)) {
+                                System.out.println(" --> [" + magie.get(string).get(0) + ", " + magie.get(string).get(1) + "]");
+                                magieArme = string;
+                                embed.addField("Magie :", magieArme, true);
+                            }
+                        }
+                    }
 
-                this.shardManager.setStatus(OnlineStatus.OFFLINE);
+                    if (embed.isEmpty()) {
+                        event.reply("Vous n'avez rien reçu !").queue();
+                    } else {
+                        event.reply("Vous avez obtenu :").queue();
+                        event.getChannel().sendMessageEmbeds(embed.build()).queue();
+                    }
+                } else {
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
+            }
+            case "off" -> {
+                if (admin_user.contains(event.getUser().getName())) {
+                    event.reply("Merci d'avoir visité ma Taverne. A bientôt soldat !").queue();
 
-                System.exit(0);
+                    this.shardManager.setStatus(OnlineStatus.OFFLINE);
+
+                    System.exit(0);
+                } else {
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
-            else{
-                event.reply(event.getUser().getAsMention()+": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+            case "addLootPlayer" -> {
+                for (Member m : Objects.requireNonNull(event.getGuild()).getMembers()) {
+                    System.out.println(m.getUser().getName());
+                }
             }
-        }
-        else if(command.equals("addLootPlayer")){
-            for(Member m : event.getGuild().getMembers()){
-                System.out.println(m.getUser().getName());
+            case "removeLootPlayer" -> {
+
+            }
+            case "showArmes" -> {
+
+            }
+            case "showMagies" -> {
+
+            }
+            case "showGrades" -> {
+
+            }
+            case "addArme" -> {
+
+            }
+            case "addMagie" -> {
+
+            }
+            case "addGrade" -> {
+
+            }
+            case "removeArme" -> {
+
+            }
+            case "removeMagie" -> {
+
+            }
+            case "removeGrade" -> {
+
             }
         }
     }
@@ -272,7 +299,7 @@ public class CommandManager extends ListenerAdapter {
         commandData.add(Commands.slash("off","Eteindre le bot."));
 
         OptionData optionLootable = new OptionData(OptionType.STRING, "nom", "Nom du joueur", true);
-        commandData.add(Commands.slash("addLootPlayer","Autoriser une personne à utiliser la commande /loot.").addOptions(optionLootable));
+        commandData.add(Commands.slash("addLootPlayer","Autoriser une personne à utiliser la commande loot.").addOptions(optionLootable));
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
     }

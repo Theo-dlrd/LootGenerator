@@ -28,7 +28,7 @@ public class LootGenerator extends JFrame {
         builder.enableIntents(GatewayIntent.GUILD_MESSAGES);
         ShardManager shardManager = builder.build();
 
-        shardManager.addEventListener( new CommandManager(frame));
+        shardManager.addEventListener( new CommandManager(frame,shardManager));
 
         frame.pack();
         frame.setVisible(false);

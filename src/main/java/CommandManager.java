@@ -1,28 +1,36 @@
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.sharding.ShardManager;
 import org.jetbrains.annotations.NotNull;
-
 import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
 public class CommandManager extends ListenerAdapter {
-    static private ArrayList<String> authorized_user = new ArrayList<String>();
+    static private ArrayList<String> lootable_user = new ArrayList<String>();
     static {
-        authorized_user.add("th1rox");
-        authorized_user.add("azzamac.graou");
+        lootable_user.add("th1rox");
+        lootable_user.add("azzamac.graou");
+    }
+
+    static private ArrayList<String> admin_user = new ArrayList<String>();
+    static {
+        admin_user.add("th1rox");
+        admin_user.add("azzamac.graou");
     }
 
     private HashMap<String, ArrayList<Integer>> armes;
@@ -31,8 +39,11 @@ public class CommandManager extends ListenerAdapter {
 
     private JFrame frame;
 
-    public CommandManager(JFrame frame) throws IOException {
+    private ShardManager shardManager;
+
+    public CommandManager(JFrame frame, ShardManager shardManager) throws IOException {
         this.frame = frame;
+        this.shardManager = shardManager;
         this.armes = new HashMap<String,ArrayList<Integer>>();
         this.magie = new HashMap<String,ArrayList<Integer>>();
         this.grade = new HashMap<String,ArrayList<Integer>>();
@@ -45,7 +56,7 @@ public class CommandManager extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String command = event.getName();
         if(command.equals("loot")){
-            if(authorized_user.contains(event.getUser().getName())) {
+            if(lootable_user.contains(event.getUser().getName())) {
                 EmbedBuilder embed = new EmbedBuilder();
 
                 Random rand = new Random();
@@ -100,7 +111,7 @@ public class CommandManager extends ListenerAdapter {
             }
         }
         else if(command.equals("off")){
-            if (authorized_user.contains(event.getUser().getName())){
+            if (admin_user.contains(event.getUser().getName())){
                 event.reply("Merci d'avoir visité ma Taverne. A bientôt soldat !").queue();
 
                 this.shardManager.setStatus(OnlineStatus.OFFLINE);
@@ -109,6 +120,11 @@ public class CommandManager extends ListenerAdapter {
             }
             else{
                 event.reply(event.getUser().getAsMention()+": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+            }
+        }
+        else if(command.equals("addLootPlayer")){
+            for(Member m : event.getGuild().getMembers()){
+                System.out.println(m.getUser().getName());
             }
         }
     }
@@ -253,8 +269,11 @@ public class CommandManager extends ListenerAdapter {
         List<CommandData> commandData = new ArrayList<CommandData>();
 
         commandData.add(Commands.slash("loot","Obtenez du loot aléatoirement."));
+        commandData.add(Commands.slash("off","Eteindre le bot."));
+
+        OptionData optionLootable = new OptionData(OptionType.STRING, "nom", "Nom du joueur", true);
+        commandData.add(Commands.slash("addLootPlayer","Autoriser une personne à utiliser la commande /loot.").addOptions(optionLootable));
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
     }
-
 }

@@ -12,18 +12,11 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.*;
 
 public class CommandManager extends ListenerAdapter {
-    static private ArrayList<String> lootable_user = new ArrayList<String>();
-    static {
-        lootable_user.add("th1rox");
-        lootable_user.add("azzamac.graou");
-    }
 
     static private ArrayList<String> admin_user = new ArrayList<String>();
     static {
@@ -32,8 +25,9 @@ public class CommandManager extends ListenerAdapter {
     }
 
     private HashMap<String, ArrayList<Integer>> armes;
-    private HashMap<String,ArrayList<Integer>> magie;
-    private HashMap<String,ArrayList<Integer>> grade;
+    private HashMap<String, ArrayList<Integer>> magie;
+    private HashMap<String, ArrayList<Integer>> grade;
+    private ArrayList<String> lootable_users;
 
     private final JFrame frame;
 
@@ -45,22 +39,33 @@ public class CommandManager extends ListenerAdapter {
         this.armes = new HashMap<String,ArrayList<Integer>>();
         this.magie = new HashMap<String,ArrayList<Integer>>();
         this.grade = new HashMap<String,ArrayList<Integer>>();
+        this.lootable_users = new ArrayList<>();
         extractArmes();
         extractGrade();
         extractMagie();
+        extractLootableUsers();
         System.out.println("Bot pret");
+    }
+
+    private void extractLootableUsers() throws  IOException{
+        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/LootMembers.txt"))) {
+            String line;
+            while((line=br.readLine())!=null){
+                lootable_users.add(line);
+            }
+        } catch (IOException e) {
+            System.out.println("ERREUR : Fichier LootMembers.txt introuvable ou non lisible");
+            System.exit(-1);
+        }
     }
 
     /**
      * Méthode d'extraction des armes dans le fichier armes.txt présent dans le chemin LootGenerator/assets/Armes/
      */
     private void extractArmes() throws IOException {
-        System.out.println();
-        boolean continuer=false;
         int pourcent=0;
         do{
             try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Armes.txt"))) {
-                continuer=false;
                 String line;
                 pourcent = 0;
                 while((line=br.readLine())!=null){
@@ -76,21 +81,12 @@ public class CommandManager extends ListenerAdapter {
                 if(pourcent>100){
                     JOptionPane.showMessageDialog(frame, "ERREUR : Total des pourcentages des armes > 100.\nModifier les pourcentages des armes du fichier Armes.txt avant de continuer");
                 }
-                else if(pourcent<100){
-                    int choix = JOptionPane.showConfirmDialog(frame, "Total des pourcentages des armes < 100.\nSouhaitez-vous continuer ?\nPS: Avant de choisir non, pensez à modifier le fichier Armes.txt", "Avertissement", JOptionPane.YES_NO_OPTION);
-                    if(choix==0){
-                        continuer=true;
-                    }
-                }
-                else{
-                    continuer=true;
-                }
 
             } catch (IOException e) {
                 System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
                 System.exit(-1);
             }
-        }while(pourcent>100 || !continuer);
+        }while(pourcent>100);
 
 
         for(String string : armes.keySet()){
@@ -104,7 +100,6 @@ public class CommandManager extends ListenerAdapter {
         int pourcent=0;
         do{
             try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Magies.txt"))) {
-                continuer=false;
                 String line;
                 pourcent = 0;
                 while((line=br.readLine())!=null){
@@ -120,21 +115,12 @@ public class CommandManager extends ListenerAdapter {
                 if(pourcent>100){
                     JOptionPane.showMessageDialog(frame, "ERREUR : Total des pourcentages des types de magie > 100.\nModifier les pourcentages des types de magie du fichier Magies.txt avant de continuer");
                 }
-                else if(pourcent<100){
-                    int choix = JOptionPane.showConfirmDialog(frame, "Total des pourcentages des types de magie < 100.\nSouhaitez-vous continuer ?\nPS: Avant de choisir non, pensez à modifier le fichier Magies.txt", "Avertissement", JOptionPane.YES_NO_OPTION);
-                    if(choix==0){
-                        continuer=true;
-                    }
-                }
-                else{
-                    continuer=true;
-                }
 
             } catch (IOException e) {
                 System.out.println("ERREUR : Fichier Magies.txt introuvable ou non lisible");
                 System.exit(-1);
             }
-        }while(pourcent>100 || !continuer);
+        }while(pourcent>100);
 
 
         for(String string : magie.keySet()){
@@ -149,7 +135,6 @@ public class CommandManager extends ListenerAdapter {
         int pourcent=0;
         do{
             try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Grades.txt"))) {
-                continuer=false;
                 String line;
                 pourcent = 0;
                 while((line=br.readLine())!=null){
@@ -169,15 +154,12 @@ public class CommandManager extends ListenerAdapter {
                 if(pourcent!=100){
                     JOptionPane.showMessageDialog(frame, "ERREUR : Total des pourcentages des grades différent de 100.\nModifier les pourcentages des types de magie du fichier typesMagie.txt avant de continuer");
                 }
-                else{
-                    continuer=true;
-                }
 
             } catch (IOException e) {
                 System.out.println("ERREUR : Fichier Grades.txt introuvable ou non lisible");
                 System.exit(-1);
             }
-        }while(pourcent!=100 || !continuer);
+        }while(pourcent!=100);
 
         for(String string : grade.keySet()){
             System.out.println(string +" -> ["+grade.get(string).get(0)+","+grade.get(string).get(1)+"] --> RGB("+grade.get(string).get(2)+","+grade.get(string).get(3)+","+grade.get(string).get(4)+")");
@@ -190,7 +172,7 @@ public class CommandManager extends ListenerAdapter {
         String command = event.getName();
         switch (command) {
             case "loot" -> {
-                if (lootable_user.contains(event.getUser().getName())) {
+                if (lootable_users.contains(event.getUser().getName())) {
                     EmbedBuilder embed = new EmbedBuilder();
 
                     Random rand = new Random();
@@ -257,12 +239,30 @@ public class CommandManager extends ListenerAdapter {
             case "addlootmember" -> {
                 if(admin_user.contains(event.getUser().getName())){
                     String userName = Objects.requireNonNull(event.getOption("nom")).getAsString();
-                    if(lootable_user.contains(userName)){
-                        event.reply("```"+userName + " peut déjà utiliser la commande /loot !```").queue();
+                    if(lootable_users.contains(userName)){
+                        event.reply(userName + " peut déjà utiliser la commande /loot !").queue();
                     }
                     else{
-                        lootable_user.add(userName);
-                        event.reply("```"+userName + " a bien été ajouté aux utilisateurs de la commande /loot !``").queue();
+                        try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/LootMembers.txt"))) {
+                            for(String user : lootable_users){
+                                br.append(user).append("\n");
+                            }
+                            br.append(userName).append("\n");
+                        } catch (IOException e) {
+                            System.out.println("ERREUR : Fichier LootMembers.txt introuvable ou non lisible");
+                            System.exit(-1);
+                        }
+
+                        lootable_users = new ArrayList<>();
+                        try {
+                            extractLootableUsers();
+                        } catch (IOException e) {
+                            System.out.println("ERREUR :  Rechargement du fichier LootMembers.txt introuvable ou non lisible");
+                        }
+
+                        StringBuilder reponse = new StringBuilder("-----Utilisateurs de /loot-----\n");
+                        for (String admin : lootable_users) reponse.append("- ").append(admin).append("\n");
+                        event.reply(userName + " a bien été ajouté aux utilisateurs de la commande /loot !\n"+reponse.toString()).queue();
                     }
                 }
                 else{
@@ -270,26 +270,35 @@ public class CommandManager extends ListenerAdapter {
                 }
             }
             case "showlootmember" -> {
-                StringBuilder reponse = new StringBuilder("```Utilisateurs de /loot : \n");
-                for (String admin : lootable_user) reponse.append("- ").append(admin).append("\n");
-                reponse.append("```");
+                StringBuilder reponse = new StringBuilder("-----Utilisateurs de /loot-----\n");
+                for (String admin : lootable_users) reponse.append("- ").append(admin).append("\n");
                 event.reply(reponse.toString()).queue();
             }
             case "showadmin" -> {
-                StringBuilder reponse = new StringBuilder("```Administrateurs du bot : \n");
+                StringBuilder reponse = new StringBuilder("-----Administrateurs du bot-----\n");
                 for (String admin : admin_user) reponse.append("* ").append(admin).append("\n");
-                reponse.append("```");
                 event.reply(reponse.toString()).queue();
             }
             case "removelootmember" -> {
                 if(admin_user.contains(event.getUser().getName())){
                     String userName = Objects.requireNonNull(event.getOption("nom")).getAsString();
-                    if(lootable_user.contains(userName)){
-                        lootable_user.remove(userName);
-                        event.reply("```"+userName + " a bien été supprimé aux utilisateurs de la commande /loot !```").queue();
+                    if(lootable_users.contains(userName)){
+                        lootable_users.remove(userName);
+                        try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/LootMembers.txt"))) {
+                            for(String user : lootable_users){
+                                br.append(user).append("\n");
+                            }
+                        } catch (IOException e) {
+                            System.out.println("ERREUR : Fichier LootMembers.txt introuvable ou non lisible");
+                            System.exit(-1);
+                        }
+
+                        StringBuilder reponse = new StringBuilder("-----Utilisateurs de /loot-----\n");
+                        for (String admin : lootable_users) reponse.append("- ").append(admin).append("\n");
+                        event.reply(userName + " a bien été supprimé aux utilisateurs de la commande /loot !\n"+reponse.toString()).queue();
                     }
                     else{
-                        event.reply("```"+userName + " n'est déjà pas autorisé à utiliser la commande /loot !```").queue();
+                        event.reply(userName + " n'est déjà pas autorisé à utiliser la commande /loot !").queue();
                     }
                 }
                 else{
@@ -297,16 +306,84 @@ public class CommandManager extends ListenerAdapter {
                 }
             }
             case "showarmes" -> {
-
+                StringBuilder reponse = new StringBuilder("-----Armes-----\n");
+                try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Armes.txt"))) {
+                    String[] line;
+                    String ligne;
+                    while((ligne=br.readLine())!=null){
+                        line = ligne.split(";");
+                        reponse.append("- ").append(line[0]).append(" -> ").append(line[1]).append("%\n");
+                    }
+                } catch (IOException e) {
+                    System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                    System.exit(-1);
+                }
+                reponse.append("---------------\n");
+                event.reply(reponse.toString()).queue();
             }
             case "showmagies" -> {
-
+                StringBuilder reponse = new StringBuilder("-----Magies-----\n");
+                try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Magies.txt"))) {
+                    String[] line;
+                    String ligne;
+                    while((ligne=br.readLine())!=null){
+                        line = ligne.split(";");
+                        reponse.append("- ").append(line[0]).append(" -> ").append(line[1]).append("%\n");
+                    }
+                } catch (IOException e) {
+                    System.out.println("ERREUR : Fichier Magies.txt introuvable ou non lisible");
+                    System.exit(-1);
+                }
+                reponse.append("----------------\n");
+                event.reply(reponse.toString()).queue();
             }
             case "showgrades" -> {
-
+                StringBuilder reponse = new StringBuilder("-----Grades-----\n");
+                try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Grades.txt"))) {
+                    String[] line;
+                    String ligne;
+                    while((ligne=br.readLine())!=null){
+                        line = ligne.split(";");
+                        reponse.append("- ").append(line[0]).append(" -> ").append(line[1]).append("%\n");
+                    }
+                } catch (IOException e) {
+                    System.out.println("ERREUR : Fichier Grades.txt introuvable ou non lisible");
+                    System.exit(-1);
+                }
+                reponse.append("----------------\n");
+                event.reply(reponse.toString()).queue();
             }
             case "addarme" -> {
+                if(admin_user.contains(event.getUser().getName())){
+                    String ArmeName = Objects.requireNonNull(event.getOption("arme")).getAsString();
+                    int ArmePct = Objects.requireNonNull(event.getOption("pourcentage")).getAsInt();
 
+                    if(armes.containsKey(ArmeName)){
+                        event.reply(ArmeName + "existe déjà dans le générateur !").queue();
+                    }
+                    else{
+                        try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Armes.txt"))) {
+                            for(String arme : armes.keySet()){
+                                br.append(arme).append(";").append(armes.get(arme).get(1)-armes.get(arme).get(0)+1+"\n");
+                            }
+                            br.append(ArmeName).append(";").append(ArmePct+"\n");
+                        } catch (IOException e) {
+                            System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                            System.exit(-1);
+                        }
+
+                        armes = new HashMap<>();
+                        try {
+                            extractArmes();
+                        } catch (IOException e) {
+                            System.out.println("ERREUR :  Rechargement du fichier LootMembers.txt introuvable ou non lisible");
+                        }
+                        event.reply(ArmeName+" a bien été ajouté au générateur !\n").queue();
+                    }
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
             case "addmagie" -> {
 
@@ -343,18 +420,31 @@ public class CommandManager extends ListenerAdapter {
         List<CommandData> commandData = new ArrayList<CommandData>();
 
         commandData.add(Commands.slash("loot","Obtenez du loot aléatoirement."));
-
         commandData.add(Commands.slash("off","Eteindre le bot."));
 
         OptionData optionLootable = new OptionData(OptionType.STRING, "nom", "Nom du joueur", true);
         commandData.add(Commands.slash("addlootmember","Autoriser une personne à utiliser la commande /loot.").addOptions(optionLootable));
-
         OptionData optionNonLootable = new OptionData(OptionType.STRING, "nom", "Nom du joueur", true);
         commandData.add(Commands.slash("removelootmember","Surpprime l'autorisation à une personne d'utiliser la commande /loot.").addOptions(optionNonLootable));
-
         commandData.add(Commands.slash("showlootmember","Affiche les personnes autorisées à utiliser la commande /loot."));
 
         commandData.add(Commands.slash("showadmin","Affiche les administrateurs du bot LootGenerator."));
+
+        commandData.add(Commands.slash("showarmes","Affiche les armes pouvant être obtenues."));
+        commandData.add(Commands.slash("showmagies","Affiche les magies pouvant être obtenues sur certaines armes."));
+        commandData.add(Commands.slash("showgrades","Affiche les grades pouvant être obtenues sur les armes."));
+
+        OptionData optionNomArme = new OptionData(OptionType.STRING, "arme", "Nom de l'arme à ajouter", true);
+        OptionData optionPctArme = new OptionData(OptionType.INTEGER, "pourcentage", "Pourcentage d'obtention de l'arme", true);
+        commandData.add(Commands.slash("addarme","Ajouter une arme au générateur.").addOptions(optionNomArme,optionPctArme));
+
+        OptionData optionNomMagie = new OptionData(OptionType.STRING, "magie", "Nom de la magie à ajouter", true);
+        OptionData optionPctMagie = new OptionData(OptionType.INTEGER, "pourcentage", "Pourcentage d'obtention de la magie sur une arme", true);
+        commandData.add(Commands.slash("addmagie","Ajouter une magie au générateur.").addOptions(optionNomMagie,optionPctMagie));
+
+        OptionData optionNomGrade = new OptionData(OptionType.STRING, "grade", "Nom du grade à ajouter", true);
+        OptionData optionPctGrade = new OptionData(OptionType.INTEGER, "pourcentage", "Pourcentage d'obtention du grade sur une arme", true);
+        commandData.add(Commands.slash("addgrade","Ajouter un grade d'arme au générateur.").addOptions(optionNomGrade,optionPctGrade));
 
         commandData.add(Commands.slash("audodo","Affiche un message gentil."));
 

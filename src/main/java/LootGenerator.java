@@ -10,6 +10,8 @@ import java.io.IOException;
 
 public class LootGenerator extends JFrame {
 
+    private final ShardManager shardManager;
+
     public LootGenerator() throws IOException {
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -26,12 +28,9 @@ public class LootGenerator extends JFrame {
         builder.setStatus(OnlineStatus.ONLINE);
         builder.setActivity(Activity.playing("D&D"));
         builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS);
-        ShardManager shardManager = builder.build();
+        this.shardManager = builder.build();
 
-        shardManager.addEventListener( new CommandManager(frame,shardManager));
-
-        frame.pack();
-        frame.setVisible(false);
+        this.shardManager.addEventListener(new CommandManager(frame, this.shardManager));
     }
 
     public static void main(String[] args) {

@@ -16,4 +16,4 @@ Light;5
 Darkness;5
 Spirit;5
 Devil;5
-Divine;1
+Divine;5

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.ImagingOpException;
 import java.io.*;
 import java.util.List;
 import java.util.*;
@@ -33,6 +34,8 @@ public class CommandManager extends ListenerAdapter {
 
     private final ShardManager shardManager;
 
+    private boolean loot_available = true;
+
     public CommandManager(JFrame frame, ShardManager shardManager) throws IOException {
         this.frame = frame;
         this.shardManager = shardManager;
@@ -44,7 +47,6 @@ public class CommandManager extends ListenerAdapter {
         extractGrade();
         extractMagie();
         extractLootableUsers();
-        System.out.println("Bot pret");
     }
 
     private void extractLootableUsers() throws  IOException{
@@ -62,32 +64,31 @@ public class CommandManager extends ListenerAdapter {
     /**
      * Méthode d'extraction des armes dans le fichier armes.txt présent dans le chemin LootGenerator/assets/Armes/
      */
-    private void extractArmes() throws IOException {
+    private void extractArmes() {
         int pourcent=0;
-        do{
-            try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Armes.txt"))) {
-                String line;
-                pourcent = 0;
-                while((line=br.readLine())!=null){
-                    pourcent+=1;
-                    String[] chaine = line.split(";");
-                    ArrayList<Integer> intervalle = new ArrayList<Integer>();
-                    intervalle.add(pourcent);
-                    intervalle.add(pourcent+=Integer.parseInt(chaine[1])-1);
-                    armes.put(chaine[0], intervalle);
-                }
-                br.close();
-
-                if(pourcent>100){
-                    JOptionPane.showMessageDialog(frame, "ERREUR : Total des pourcentages des armes > 100.\nModifier les pourcentages des armes du fichier Armes.txt avant de continuer");
-                }
-
-            } catch (IOException e) {
-                System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
-                System.exit(-1);
+        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Armes.txt"))) {
+            String line;
+            while((line=br.readLine())!=null){
+                String[] chaine = line.split(";");
+                ArrayList<Integer> intervalle = new ArrayList<Integer>();
+                intervalle.add(pourcent);
+                intervalle.add(pourcent+=Integer.parseInt(chaine[1])-1);
+                armes.put(chaine[0], intervalle);
             }
-        }while(pourcent>100);
+            br.close();
 
+            if(pourcent>100){
+                this.loot_available=false;
+                JOptionPane.showMessageDialog(frame, "Total des pourcentages des armes > 100.\nLa commande **/loot** est indisponible.\nPour la rendre disponible, vous pouvez utiliser les commandes du bot.");
+            }
+            else{
+                this.loot_available=true;
+            }
+
+        } catch (IOException e) {
+            System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+            System.exit(-1);
+        }
 
         for(String string : armes.keySet()){
             System.out.println(string +" -> ["+armes.get(string).get(0)+","+armes.get(string).get(1)+"]");
@@ -98,29 +99,30 @@ public class CommandManager extends ListenerAdapter {
     private void extractMagie(){
         boolean continuer=false;
         int pourcent=0;
-        do{
-            try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Magies.txt"))) {
-                String line;
-                pourcent = 0;
-                while((line=br.readLine())!=null){
-                    pourcent+=1;
-                    String[] chaine = line.split(";");
-                    ArrayList<Integer> intervalle = new ArrayList<Integer>();
-                    intervalle.add(pourcent);
-                    intervalle.add(pourcent+=Integer.parseInt(chaine[1])-1);
-                    magie.put(chaine[0], intervalle);
-                }
-                br.close();
-
-                if(pourcent>100){
-                    JOptionPane.showMessageDialog(frame, "ERREUR : Total des pourcentages des types de magie > 100.\nModifier les pourcentages des types de magie du fichier Magies.txt avant de continuer");
-                }
-
-            } catch (IOException e) {
-                System.out.println("ERREUR : Fichier Magies.txt introuvable ou non lisible");
-                System.exit(-1);
+        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Magies.txt"))) {
+            String line;
+            while((line=br.readLine())!=null){
+                pourcent+=1;
+                String[] chaine = line.split(";");
+                ArrayList<Integer> intervalle = new ArrayList<Integer>();
+                intervalle.add(pourcent);
+                intervalle.add(pourcent+=Integer.parseInt(chaine[1])-1);
+                magie.put(chaine[0], intervalle);
             }
-        }while(pourcent>100);
+            br.close();
+
+            if(pourcent>100){
+                this.loot_available=false;
+                JOptionPane.showMessageDialog(frame, "Total des pourcentages des magies > 100.\nLa commande **/loot** est indisponible.\nPour la rendre disponible, vous pouvez utiliser les commandes du bot.");
+            }
+            else{
+                this.loot_available=true;
+            }
+
+        } catch (IOException e) {
+            System.out.println("ERREUR : Fichier Magies.txt introuvable ou non lisible");
+            System.exit(-1);
+        }
 
 
         for(String string : magie.keySet()){
@@ -133,33 +135,34 @@ public class CommandManager extends ListenerAdapter {
     private void extractGrade(){
         boolean continuer=false;
         int pourcent=0;
-        do{
-            try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Grades.txt"))) {
-                String line;
-                pourcent = 0;
-                while((line=br.readLine())!=null){
-                    pourcent+=1;
-                    String[] chaine = line.split(";");
-                    ArrayList<Integer> infos = new ArrayList<Integer>();
-                    infos.add(pourcent);
-                    infos.add(pourcent+=Integer.parseInt(chaine[1])-1);
-                    String[] colors = chaine[2].split(",");
-                    for (String color: colors) {
-                        infos.add(Integer.parseInt(color));
-                    }
-                    grade.put(chaine[0], infos);
+        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Grades.txt"))) {
+            String line;
+            while((line=br.readLine())!=null){
+                pourcent+=1;
+                String[] chaine = line.split(";");
+                ArrayList<Integer> infos = new ArrayList<Integer>();
+                infos.add(pourcent);
+                infos.add(pourcent+=Integer.parseInt(chaine[1])-1);
+                String[] colors = chaine[2].split(",");
+                for (String color: colors) {
+                    infos.add(Integer.parseInt(color));
                 }
-                br.close();
-
-                if(pourcent!=100){
-                    JOptionPane.showMessageDialog(frame, "ERREUR : Total des pourcentages des grades différent de 100.\nModifier les pourcentages des types de magie du fichier typesMagie.txt avant de continuer");
-                }
-
-            } catch (IOException e) {
-                System.out.println("ERREUR : Fichier Grades.txt introuvable ou non lisible");
-                System.exit(-1);
+                grade.put(chaine[0], infos);
             }
-        }while(pourcent!=100);
+            br.close();
+
+            if(pourcent!=100){
+                this.loot_available=false;
+                JOptionPane.showMessageDialog(frame, "Total des pourcentages des magies différent de 100.\nLa commande **/loot** est indisponible.\nPour la rendre disponible, vous pouvez utiliser les commandes du bot.");
+            }
+            else{
+                this.loot_available=true;
+            }
+
+        } catch (IOException e) {
+            System.out.println("ERREUR : Fichier Grades.txt introuvable ou non lisible");
+            System.exit(-1);
+        }
 
         for(String string : grade.keySet()){
             System.out.println(string +" -> ["+grade.get(string).get(0)+","+grade.get(string).get(1)+"] --> RGB("+grade.get(string).get(2)+","+grade.get(string).get(3)+","+grade.get(string).get(4)+")");
@@ -172,7 +175,7 @@ public class CommandManager extends ListenerAdapter {
         String command = event.getName();
         switch (command) {
             case "loot" -> {
-                if (lootable_users.contains(event.getUser().getName())) {
+                if (lootable_users.contains(event.getUser().getName()) && this.loot_available) {
                     EmbedBuilder embed = new EmbedBuilder();
 
                     Random rand = new Random();
@@ -220,8 +223,12 @@ public class CommandManager extends ListenerAdapter {
                         event.reply("Vous avez obtenu :").queue();
                         event.getChannel().sendMessageEmbeds(embed.build()).queue();
                     }
-                } else {
+                }
+                else if(!lootable_users.contains(event.getUser().getName())){
                     event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
+                else{
+                    event.reply("Commande /loot indisponible. Veuillez modifier les armes, les grades ou les magies pour régler le problème").queue();
                 }
             }
             case "off" -> {
@@ -373,11 +380,7 @@ public class CommandManager extends ListenerAdapter {
                         }
 
                         armes = new HashMap<>();
-                        try {
-                            extractArmes();
-                        } catch (IOException e) {
-                            System.out.println("ERREUR :  Rechargement du fichier LootMembers.txt introuvable ou non lisible");
-                        }
+                        extractArmes();
                         event.reply(ArmeName+" a bien été ajouté au générateur !\n").queue();
                     }
                 }
@@ -386,31 +389,199 @@ public class CommandManager extends ListenerAdapter {
                 }
             }
             case "addmagie" -> {
+                if(admin_user.contains(event.getUser().getName())){
+                    String MagieName = Objects.requireNonNull(event.getOption("magie")).getAsString();
+                    int MagiePct = Objects.requireNonNull(event.getOption("pourcentage")).getAsInt();
 
+                    if(magie.containsKey(MagieName)){
+                        event.reply(MagieName + "existe déjà dans le générateur !").queue();
+                    }
+                    else{
+                        try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Magies.txt"))) {
+                            for(String m : magie.keySet()){
+                                br.append(m).append(";").append(magie.get(m).get(1)-magie.get(m).get(0)+1+"\n");
+                            }
+                            br.append(MagieName).append(";").append(MagiePct+"\n");
+                        } catch (IOException e) {
+                            System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                            System.exit(-1);
+                        }
+
+                        magie = new HashMap<>();
+                        extractMagie();
+                        event.reply(MagieName+" a bien été ajouté au générateur !\n").queue();
+                    }
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
             case "addgrade" -> {
+                if(admin_user.contains(event.getUser().getName())){
+                    String GradeName = Objects.requireNonNull(event.getOption("magie")).getAsString();
+                    int GradePct = Objects.requireNonNull(event.getOption("pourcentage")).getAsInt();
+                    int Redcolor = Objects.requireNonNull(event.getOption("rouge")).getAsInt();
+                    int Greencolor = Objects.requireNonNull(event.getOption("vert")).getAsInt();
+                    int Bluecolor = Objects.requireNonNull(event.getOption("bleu")).getAsInt();
+                    if(Redcolor<0 || Redcolor>255){
+                        event.reply("Couleur Rouge incorrecte : "+Redcolor+" - [0-255] attendu").queue();
+                    }
+                    else if(Greencolor<0 || Greencolor>255){
+                        event.reply("Couleur Vert incorrecte : "+Greencolor+" - [0-255] attendu").queue();
+                    }
+                    else if(Bluecolor<0 || Bluecolor>255){
+                        event.reply("Couleur Bleu incorrecte : "+Bluecolor+" - [0-255] attendu").queue();
+                    }
+                    else {
+                        if (armes.containsKey(GradeName)) {
+                            event.reply(GradeName + "existe déjà dans le générateur !").queue();
+                        } else {
+                            try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Grades.txt"))) {
+                                for (String g : grade.keySet()) {
+                                    br.append(g).append(";").append(grade.get(g).get(1) - grade.get(g).get(0) + 1 + ";").append(grade.get(g).get(2) + ",").append(grade.get(g).get(3) + ",").append(grade.get(g).get(4) + "\n");
+                                }
+                                br.append(GradeName).append(";").append(GradePct + ";").append(Redcolor + ",").append(Greencolor + ",").append(Bluecolor + "\n");
+                            } catch (IOException e) {
+                                System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                                System.exit(-1);
+                            }
 
+                            armes = new HashMap<>();
+                            extractGrade();
+                            event.reply(GradeName + " a bien été ajouté au générateur !\n").queue();
+                        }
+                    }
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
             case "removearme" -> {
+                if(admin_user.contains(event.getUser().getName())){
+                    String ArmeName = Objects.requireNonNull(event.getOption("arme")).getAsString();
+                    if(armes.containsKey(ArmeName)){
+                        armes.remove(ArmeName);
+                        try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Armes.txt"))) {
+                            for(String arme : armes.keySet()){
+                                br.append(arme).append(";").append(armes.get(arme).get(1)-armes.get(arme).get(0)+1+"\n");
+                            }
+                        } catch (IOException e) {
+                            System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                            System.exit(-1);
+                        }
 
+                        armes = new HashMap<>();
+                        extractArmes();
+                        event.reply(ArmeName+" a bien été supprimé du générateur !\n").queue();
+                    }
+                    else{
+                        event.reply(ArmeName + "n'existe pas dans le générateur !").queue();
+                    }
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
             case "removemagie" -> {
+                if(admin_user.contains(event.getUser().getName())){
+                    String MagieName = Objects.requireNonNull(event.getOption("magie")).getAsString();
+                    if(magie.containsKey(MagieName)){
+                        magie.remove(MagieName);
+                        try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Magies.txt"))) {
+                            for(String m : magie.keySet()){
+                                br.append(m).append(";").append(magie.get(m).get(1)-magie.get(m).get(0)+1+"\n");
+                            }
+                        } catch (IOException e) {
+                            System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                            System.exit(-1);
+                        }
 
+                        magie = new HashMap<>();
+                        extractMagie();
+                        event.reply(MagieName+" a bien été supprimé du générateur !\n").queue();
+                    }
+                    else{
+                        event.reply(MagieName + "n'existe pas dans le générateur !").queue();
+                    }
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
             case "removegrade" -> {
+                if(admin_user.contains(event.getUser().getName())){
+                    String GradeName = Objects.requireNonNull(event.getOption("grade")).getAsString();
+                    if(magie.containsKey(GradeName)){
+                        magie.remove(GradeName);
+                        try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Grades.txt"))) {
+                            for (String g : grade.keySet()){
+                                br.append(g).append(";").append(grade.get(g).get(1) - grade.get(g).get(0) + 1 + ";").append(grade.get(g).get(2) + ",").append(grade.get(g).get(3) + ",").append(grade.get(g).get(4) + "\n");
+                            }
+                        }
+                        catch (IOException e) {
+                            System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
 
+                        }
+
+                        grade = new HashMap<>();
+                        extractGrade();
+                        event.reply(GradeName+" a bien été supprimé du générateur !").queue();
+                    }
+                    else{
+                        event.reply(GradeName + "n'existe pas dans le générateur !").queue();
+                    }
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
             case "cleararmes" -> {
-
+                if(admin_user.contains(event.getUser().getName())){
+                    armes = new HashMap<>();
+                    try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Armes.txt"))) {
+                        br.append("");
+                    }
+                    catch (IOException e) {
+                        System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                    }
+                    extractArmes();
+                    event.reply("Les armes ont bien été réinitialisées !\n Utilisez la commande _/addarme_ pour ajouter des armes dau générateur").queue();
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
             case "clearmagies" -> {
-
+                if(admin_user.contains(event.getUser().getName())){
+                    magie = new HashMap<>();
+                    try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Magies.txt"))) {
+                        br.append("");
+                    }
+                    catch (IOException e) {
+                        System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                    }
+                    extractMagie();
+                    event.reply("Les magies ont bien été réinitialisées !\n Utilisez la commande _/addmagie_ pour ajouter des magies au générateur").queue();
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
             case "cleargrades" -> {
-
-            }
-            case "audodo" -> {
-                event.reply("Va dormir gros fdp de "+ event.getUser().getAsMention()).queue();
+                if(admin_user.contains(event.getUser().getName())){
+                    grade = new HashMap<>();
+                    try (BufferedWriter br = new BufferedWriter(new FileWriter("src/main/resources/Grades.txt"))) {
+                        br.append("");
+                    }
+                    catch (IOException e) {
+                        System.out.println("ERREUR : Fichier Armes.txt introuvable ou non lisible");
+                    }
+                    extractGrade();
+                    event.reply("Les grades ont bien été réinitialisés !\n Utilisez la commande _/addgrade_ pour ajouter des grades d'armes au générateur").queue();
+                }
+                else{
+                    event.reply(event.getUser().getAsMention() + ": Vous n'avez pas l'autorisation d'utiliser cette commande !").queue();
+                }
             }
         }
     }
@@ -444,9 +615,19 @@ public class CommandManager extends ListenerAdapter {
 
         OptionData optionNomGrade = new OptionData(OptionType.STRING, "grade", "Nom du grade à ajouter", true);
         OptionData optionPctGrade = new OptionData(OptionType.INTEGER, "pourcentage", "Pourcentage d'obtention du grade sur une arme", true);
-        commandData.add(Commands.slash("addgrade","Ajouter un grade d'arme au générateur.").addOptions(optionNomGrade,optionPctGrade));
+        OptionData optionColRouge = new OptionData(OptionType.STRING, "rouge", "Nuance de rouge [0-255]", true);
+        OptionData optionColVert = new OptionData(OptionType.INTEGER, "vert", "Nuance de vert [0-255]", true);
+        OptionData optionColBleu = new OptionData(OptionType.STRING, "bleu", "Nuance de bleu [0-255]", true);
+        commandData.add(Commands.slash("addgrade","Ajouter un grade d'arme au générateur avec une couleur de RGB.").addOptions(optionNomGrade,optionPctGrade,optionColRouge,optionColVert,optionColBleu));
 
-        commandData.add(Commands.slash("audodo","Affiche un message gentil."));
+        optionNomArme = new OptionData(OptionType.STRING, "arme", "Nom de l'arme à supprimer", true);
+        commandData.add(Commands.slash("removearme","Supprimer une arme du générateur.").addOptions(optionNomArme));
+
+        optionNomMagie = new OptionData(OptionType.STRING, "arme", "Nom de la magie à supprimer", true);
+        commandData.add(Commands.slash("removemagie","Supprimer une magie du générateur.").addOptions(optionNomMagie));
+
+        optionNomGrade = new OptionData(OptionType.STRING, "grade", "Nom du grade à supprimer", true);
+        commandData.add(Commands.slash("removegrade","Supprimer un grade du générateur.").addOptions(optionNomGrade));
 
         event.getGuild().updateCommands().addCommands(commandData).queue();
     }

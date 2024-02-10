@@ -1,4 +1,3 @@
-Lance;9
-Épée courte;49
-Épée longue;19
-Tomaok;20
+Lance;10
+Épée courte;50
+Épée longue;20

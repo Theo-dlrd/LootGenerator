@@ -267,9 +267,10 @@ public class CommandManager extends ListenerAdapter {
                             System.out.println("ERREUR :  Rechargement du fichier LootMembers.txt introuvable ou non lisible");
                         }
 
-                        StringBuilder reponse = new StringBuilder("-----Utilisateurs de /loot-----\n");
+                        StringBuilder reponse = new StringBuilder("-----Utilisateurs de _/loot_-----\n");
                         for (String admin : lootable_users) reponse.append("- ").append(admin).append("\n");
-                        event.reply(userName + " a bien été ajouté aux utilisateurs de la commande /loot !\n"+reponse.toString()).queue();
+                        reponse.append("-------------------------------");
+                        event.reply(reponse.toString()).queue();
                     }
                 }
                 else{
@@ -277,13 +278,15 @@ public class CommandManager extends ListenerAdapter {
                 }
             }
             case "showlootmember" -> {
-                StringBuilder reponse = new StringBuilder("-----Utilisateurs de /loot-----\n");
+                StringBuilder reponse = new StringBuilder("-----Utilisateurs de _/loot_-----\n");
                 for (String admin : lootable_users) reponse.append("- ").append(admin).append("\n");
+                reponse.append("-------------------------------");
                 event.reply(reponse.toString()).queue();
             }
             case "showadmin" -> {
                 StringBuilder reponse = new StringBuilder("-----Administrateurs du bot-----\n");
                 for (String admin : admin_user) reponse.append("* ").append(admin).append("\n");
+                reponse.append("--------------------------------");
                 event.reply(reponse.toString()).queue();
             }
             case "removelootmember" -> {
@@ -300,9 +303,10 @@ public class CommandManager extends ListenerAdapter {
                             System.exit(-1);
                         }
 
-                        StringBuilder reponse = new StringBuilder("-----Utilisateurs de /loot-----\n");
+                        StringBuilder reponse = new StringBuilder("-----Utilisateurs de _/loot_-----\n");
                         for (String admin : lootable_users) reponse.append("- ").append(admin).append("\n");
-                        event.reply(userName + " a bien été supprimé aux utilisateurs de la commande /loot !\n"+reponse.toString()).queue();
+                        reponse.append("-------------------------------");
+                        event.reply(reponse.toString()).queue();
                     }
                     else{
                         event.reply(userName + " n'est déjà pas autorisé à utiliser la commande /loot !").queue();
